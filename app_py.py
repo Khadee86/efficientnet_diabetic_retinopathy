@@ -49,10 +49,25 @@ def gradcam_heatmap(model, img_input):
     gradcam = GradcamPlusPlus(model, model_modifier=ReplaceToLinear(), clone=True)
     pred_class = np.argmax(model.predict(img_input))
     heatmap = gradcam(CategoricalScore(pred_class), img_input)[0]
-    heatmap = tf.image.resize(tf.expand_dims(heatmap, -1), img_input.shape[1:3]).numpy().squeeze()
-    heatmap = np.uint8(255 * heatmap)
-    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-    overlay = cv2.addWeighted(np.uint8(img_input[0] * 255), 0.6, heatmap, 0.4, 0)
+    # heatmap = tf.image.resize(tf.expand_dims(heatmap, -1), img_input.shape[1:3]).numpy().squeeze()
+    # heatmap = np.uint8(255 * heatmap)
+    # heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+    # overlay = cv2.addWeighted(np.uint8(img_input[0] * 255), 0.6, heatmap, 0.4, 0)
+    # Resize to match input size, squeeze to 2D
+    heatmap = tf.image.resize(tf.expand_dims(heatmap, -1), img_input.shape[1:3]).numpy()
+    heatmap = np.squeeze(heatmap)
+
+    # Normalize and convert to uint8
+    heatmap_norm = (heatmap - np.min(heatmap)) / (np.max(heatmap) - np.min(heatmap) + 1e-8)
+    heatmap_uint8 = np.uint8(255 * heatmap_norm)
+
+    # Apply OpenCV color map (requires shape HxW and dtype uint8)
+    heatmap_color = cv2.applyColorMap(heatmap_uint8, cv2.COLORMAP_JET)
+
+    # Overlay on original image
+    original_img = np.uint8(img_input[0] * 255)
+    overlay = cv2.addWeighted(original_img, 0.6, heatmap_color, 0.4, 0)
+
     return overlay, pred_class
 
 def lime_explanation(model, img_raw):
