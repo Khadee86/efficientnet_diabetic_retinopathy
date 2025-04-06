@@ -13,9 +13,9 @@ drive.mount('/content/drive')
 
 # !pip install streamlit
 
-!pip install lime
+# !pip install lime
 
-!pip install tf-keras-vis
+# !pip install tf-keras-vis
 
 import streamlit as st
 import tensorflow as tf
