@@ -11,7 +11,7 @@ Original file is located at
 from google.colab import drive
 drive.mount('/content/drive')
 
-!pip install streamlit
+# !pip install streamlit
 
 !pip install lime
 
