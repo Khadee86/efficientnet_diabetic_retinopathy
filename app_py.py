@@ -29,8 +29,8 @@ from tf_keras_vis.utils.scores import CategoricalScore
 
 # Set up
 st.set_page_config(page_title="DR Classifier", layout="wide")
-st.title("🚀 Diabetic Retinopathy Classifier with EfficientnetB0")
-st.write("Upload a retina image and select a model to view predictions and explanations.")
+st.title("Diabetic Retinopathy Classifier with EfficientnetB0")
+st.write("Upload a retina image to view predictions and explanations.")
 
 # Class names
 CLASS_NAMES = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferative DR']
