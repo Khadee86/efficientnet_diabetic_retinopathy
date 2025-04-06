@@ -169,7 +169,7 @@ def gradcam_heatmap(model, img_input):
     heatmap = gradcam(
         CategoricalScore(pred_class),
         img_input,
-        penultimate_layer='top_conv'  # This is the key fix!
+        penultimate_layer='Conv1'  # This is the key fix!
     )[0]
 
     heatmap = tf.image.resize(tf.expand_dims(heatmap, -1), img_input.shape[1:3]).numpy()
