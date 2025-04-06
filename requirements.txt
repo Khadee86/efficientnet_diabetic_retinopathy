@@ -1,0 +1,9 @@
+# requirements.txt for Streamlit DR Classifier App
+streamlit
+tensorflow
+lime
+scikit-image
+opencv-python
+matplotlib
+pillow
+numpy
