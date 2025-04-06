@@ -17,7 +17,7 @@ Original file is located at
 import streamlit as st
 import tensorflow as tf
 import numpy as np
-# import cv2
+import cv2
 import os
 import matplotlib.pyplot as plt
 from lime import lime_image
@@ -29,7 +29,7 @@ from tf_keras_vis.utils.scores import CategoricalScore
 
 # Set up
 st.set_page_config(page_title="DR Classifier", layout="wide")
-st.title("🚀 Diabetic Retinopathy Classifier with XAI")
+st.title("🚀 Diabetic Retinopathy Classifier with EfficientnetB0")
 st.write("Upload a retina image and select a model to view predictions and explanations.")
 
 # Class names
