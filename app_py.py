@@ -141,8 +141,6 @@ IMG_SIZE = 224
 @st.cache_resource
 def load_model():
     return tf.keras.models.load_model(MODEL_PATH)
-for i, layer in enumerate(model.layers):
-    print(f"{i}: {layer.name} - {layer.__class__.__name__}")
 
 # Preprocessing function
 def preprocess_image(img):
@@ -209,7 +207,8 @@ if uploaded_file:
     st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
     image = Image.open(uploaded_file).convert("RGB")
     model = load_model()
-
+    for i, layer in enumerate(model.layers):
+    print(f"{i}: {layer.name} - {layer.__class__.__name__}")
     # Process + Predict
     img_input, img_display = preprocess_image(image)
     gradcam_img, pred_class = gradcam_heatmap(model, img_input)
