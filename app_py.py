@@ -129,12 +129,12 @@ from tf_keras_vis.utils.scores import CategoricalScore
 
 # Set up
 st.set_page_config(page_title="DR Classifier", layout="wide")
-st.title("🩺 Diabetic Retinopathy Classifier with EfficientNetB0")
+st.title("Diabetic Retinopathy Classifier with EfficientNetB0")
 st.write("Upload a retina image to view predictions with Grad-CAM++ and LIME explanations.")
 
 # Constants
 CLASS_NAMES = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferative DR']
-MODEL_PATH = 'EfficientNetB0_best.h5'
+MODEL_PATH = 'EfficientNetB0_best.keras'
 IMG_SIZE = 224
 
 # Load model
