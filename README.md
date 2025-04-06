@@ -25,10 +25,7 @@ This project is a web-based application for multi-class classification of diabet
 ```
 ├── app.py                      # Streamlit app code
 ├── requirements.txt           # Python dependencies
-├── EfficientNetB0_best.h5     # Trained model weights
-├── EfficientNetB1_best.h5
-├── EfficientNetB2_best.h5
-├── EfficientNetB3_best.h5
+├── EfficientNetB0_best.keras     # Trained model weight
 ```
 
 ---
