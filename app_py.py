@@ -149,10 +149,29 @@ def preprocess_image(img):
     return np.expand_dims(img_array, axis=0), img
 
 # Grad-CAM++
+# def gradcam_heatmap(model, img_input):
+#     gradcam = GradcamPlusPlus(model, model_modifier=ReplaceToLinear(), clone=True)
+#     pred_class = np.argmax(model.predict(img_input))
+#     heatmap = gradcam(CategoricalScore(pred_class), img_input)[0]
+#     heatmap = tf.image.resize(tf.expand_dims(heatmap, -1), img_input.shape[1:3]).numpy()
+#     heatmap = np.squeeze(heatmap)
+#     heatmap_norm = (heatmap - np.min(heatmap)) / (np.max(heatmap) - np.min(heatmap) + 1e-8)
+#     heatmap_uint8 = np.uint8(255 * heatmap_norm)
+#     heatmap_color = cv2.applyColorMap(heatmap_uint8, cv2.COLORMAP_JET)
+#     original_img = np.uint8(img_input[0] * 255)
+#     overlay = cv2.addWeighted(original_img, 0.6, heatmap_color, 0.4, 0)
+#     return overlay, pred_class
 def gradcam_heatmap(model, img_input):
     gradcam = GradcamPlusPlus(model, model_modifier=ReplaceToLinear(), clone=True)
     pred_class = np.argmax(model.predict(img_input))
-    heatmap = gradcam(CategoricalScore(pred_class), img_input)[0]
+
+    # Use the last convolutional layer of EfficientNetB0 explicitly
+    heatmap = gradcam(
+        CategoricalScore(pred_class),
+        img_input,
+        penultimate_layer='top_conv'  # This is the key fix!
+    )[0]
+
     heatmap = tf.image.resize(tf.expand_dims(heatmap, -1), img_input.shape[1:3]).numpy()
     heatmap = np.squeeze(heatmap)
     heatmap_norm = (heatmap - np.min(heatmap)) / (np.max(heatmap) - np.min(heatmap) + 1e-8)
@@ -160,6 +179,7 @@ def gradcam_heatmap(model, img_input):
     heatmap_color = cv2.applyColorMap(heatmap_uint8, cv2.COLORMAP_JET)
     original_img = np.uint8(img_input[0] * 255)
     overlay = cv2.addWeighted(original_img, 0.6, heatmap_color, 0.4, 0)
+
     return overlay, pred_class
 
 # LIME Explanation
