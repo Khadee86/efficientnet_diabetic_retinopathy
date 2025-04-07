@@ -135,7 +135,7 @@ if uploaded_file is not None:
     st.subheader("Grad-CAM++ Explanation")
     try:
         gradcam_overlay = generate_gradcam(model, original_array)
-        st.image(gradcam_overlay, caption="Grad-CAM++", use_container_width=700)
+        st.image(gradcam_overlay, caption="Grad-CAM++", use_container_width=False)
     except Exception as e:
         st.error(f"Grad-CAM++ failed: {e}")
 
@@ -143,6 +143,6 @@ if uploaded_file is not None:
     st.subheader("LIME Explanation")
     try:
         lime_img = generate_lime_explanation(model, original_array)
-        st.image(lime_img, caption="LIME Explanation", use_column_width=True)
+        st.image(lime_img, caption="LIME Explanation", use_container_width=True)
     except Exception as e:
         st.error(f"LIME explanation failed: {e}")
