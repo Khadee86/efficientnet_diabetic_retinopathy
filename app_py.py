@@ -8,6 +8,8 @@ Original file is located at
 """
 
 import streamlit as st
+st.set_page_config(page_title="DR Classifier", layout="wide")
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -18,7 +20,6 @@ import lime
 from lime import lime_image
 from skimage.segmentation import mark_boundaries
 
-st.set_page_config(page_title="DR Classifier", layout="wide")
 
 # ---------- CONFIG ----------
 MODEL_PATH = "EfficientNetB0_best.keras"
