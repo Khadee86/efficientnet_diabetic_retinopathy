@@ -43,8 +43,8 @@ def preprocess_img_for_model(pil_img):
     img_preprocessed = preprocess_input(img_array)
     img_expanded = np.expand_dims(img_preprocessed, axis=0)
     return img_expanded, img_array
-
-# ---------- GRAD-CAM++ ----------
+    
+# ---------- GRADCAM ++ ----------
 def generate_gradcam(model, img_array, last_conv_layer="top_conv"):
     grad_model = tf.keras.models.Model(
         [model.inputs],
@@ -60,12 +60,17 @@ def generate_gradcam(model, img_array, last_conv_layer="top_conv"):
     conv_outputs = conv_outputs[0]
     weights = tf.reduce_mean(grads, axis=(0, 1))
     cam = np.dot(conv_outputs, weights.numpy())
+
     cam = np.maximum(cam, 0)
-    cam = cam / np.max(cam)
-    cam = tf.image.resize(cam[..., np.newaxis], IMAGE_SIZE).numpy().squeeze()
-    heatmap = np.uint8(255 * cam)
-    heatmap = np.stack([heatmap] * 3, axis=-1)
-    overlay = np.uint8(0.4 * heatmap + 0.6 * img_array)
+    cam = cam / (np.max(cam) + 1e-8)
+
+    # Resize and apply colormap
+    cam = cv2.resize(cam, IMAGE_SIZE)
+    heatmap = cv2.applyColorMap(np.uint8(255 * cam), cv2.COLORMAP_JET)
+    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+
+    # Overlay
+    overlay = np.uint8(0.5 * heatmap + 0.5 * img_array)
     return overlay
 
 # ---------- LIME ----------
