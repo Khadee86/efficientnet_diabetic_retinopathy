@@ -12,16 +12,14 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.efficientnet import preprocess_input
-from tensorflow.keras.preprocessing import image as keras_image
 from PIL import Image
 import matplotlib.pyplot as plt
-import io
 import lime
 from lime import lime_image
 from skimage.segmentation import mark_boundaries
 
 # ---------- CONFIG ----------
-MODEL_PATH = "EfficientNetB0_best.keras"
+MODEL_PATH = "efficientnetb0_model.keras"
 IMAGE_SIZE = (224, 224)
 CLASS_NAMES = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferative DR']
 
@@ -33,8 +31,18 @@ def load_efficientnetb0():
 
 model = load_efficientnetb0()
 
-# ---------- HELPER FUNCTIONS ----------
+# ---------- HEURISTIC RETINA CHECK ----------
+def is_likely_retinal_image(pil_img):
+    img = pil_img.resize((224, 224))
+    img_np = np.array(img)
+    gray = np.mean(img_np, axis=2)
+    dark_pixels = np.sum(gray < 30)
+    total_pixels = gray.size
+    dark_ratio = dark_pixels / total_pixels
+    red_channel_mean = np.mean(img_np[..., 0])
+    return dark_ratio > 0.25 and red_channel_mean > 50
 
+# ---------- IMAGE PREPROCESS ----------
 def preprocess_img_for_model(pil_img):
     img_resized = pil_img.resize(IMAGE_SIZE)
     img_array = np.array(img_resized)
@@ -42,12 +50,12 @@ def preprocess_img_for_model(pil_img):
     img_expanded = np.expand_dims(img_preprocessed, axis=0)
     return img_expanded, img_array
 
+# ---------- GRAD-CAM++ ----------
 def generate_gradcam(model, img_array, last_conv_layer="top_conv"):
     grad_model = tf.keras.models.Model(
         [model.inputs],
         [model.get_layer(last_conv_layer).output, model.output]
     )
-
     with tf.GradientTape() as tape:
         inputs = tf.cast(np.expand_dims(preprocess_input(img_array), axis=0), tf.float32)
         conv_outputs, predictions = grad_model(inputs)
@@ -56,7 +64,6 @@ def generate_gradcam(model, img_array, last_conv_layer="top_conv"):
 
     grads = tape.gradient(loss, conv_outputs)[0]
     conv_outputs = conv_outputs[0]
-
     weights = tf.reduce_mean(grads, axis=(0, 1))
     cam = np.dot(conv_outputs, weights.numpy())
 
@@ -66,10 +73,10 @@ def generate_gradcam(model, img_array, last_conv_layer="top_conv"):
 
     heatmap = np.uint8(255 * cam)
     heatmap = np.stack([heatmap] * 3, axis=-1)
-
     overlay = np.uint8(0.4 * heatmap + 0.6 * img_array)
     return overlay
 
+# ---------- LIME ----------
 def generate_lime_explanation(model, img_array):
     def predict_fn(images):
         images = preprocess_input(images)
@@ -92,17 +99,23 @@ def generate_lime_explanation(model, img_array):
     return mark_boundaries(lime_img, mask)
 
 # ---------- STREAMLIT UI ----------
-st.title("Diabetic Retinopathy Classifier")
-st.write("Upload a retinal fundus image to classify DR severity using EfficientNetB0.")
+st.set_page_config(page_title="DR Classifier", layout="wide")
+st.title("👁️ Diabetic Retinopathy Classifier")
+st.write("Upload a **retinal fundus image** to detect DR severity using EfficientNetB0 with explainability.")
 
-uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Upload a Retinal Image", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert('RGB')
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
-    img_expanded, original_array = preprocess_img_for_model(image)
+    # ---------- CHECK: Is it a retina image? ----------
+    is_retina = is_likely_retinal_image(image)
+    if not is_retina:
+        st.warning("⚠️ This image might not be a valid retinal fundus photo. The prediction may be unreliable.")
 
+    # ---------- Prediction ----------
+    img_expanded, original_array = preprocess_img_for_model(image)
     preds = model.predict(img_expanded)[0]
     predicted_class = np.argmax(preds)
     confidence = preds[predicted_class]
@@ -111,14 +124,29 @@ if uploaded_file is not None:
     st.write(f"**Class:** {CLASS_NAMES[predicted_class]}")
     st.write(f"**Confidence:** {confidence:.2f}")
 
+    # ---------- CHECK: Low confidence
+    if confidence < 0.5:
+        st.warning("⚠️ The model is not confident in this prediction. "
+                   "The uploaded image may be unclear or invalid.")
+
+    # ---------- BLOCK IF BOTH CHECKS FAIL ----------
+    if not is_retina and confidence < 0.5:
+        st.error("❌ The image is not confidently recognized as a retinal fundus photo. "
+                 "Please upload a clear, valid retina image.")
+        st.stop()
+
     # ---------- GRAD-CAM++ ----------
-    if st.checkbox("Show Grad-CAM++"):
-        st.subheader("Grad-CAM++ Explanation")
+    st.subheader("Grad-CAM++ Explanation")
+    try:
         gradcam_overlay = generate_gradcam(model, original_array)
         st.image(gradcam_overlay, caption="Grad-CAM++", use_column_width=True)
+    except Exception as e:
+        st.error(f"Grad-CAM++ failed: {e}")
 
     # ---------- LIME ----------
-    if st.checkbox("Show LIME Explanation"):
-        st.subheader("LIME Explanation")
+    st.subheader("LIME Explanation")
+    try:
         lime_img = generate_lime_explanation(model, original_array)
         st.image(lime_img, caption="LIME Explanation", use_column_width=True)
+    except Exception as e:
+        st.error(f"LIME explanation failed: {e}")
