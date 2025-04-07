@@ -19,7 +19,7 @@ from lime import lime_image
 from skimage.segmentation import mark_boundaries
 
 # ---------- CONFIG ----------
-MODEL_PATH = "EfficientnetB0_best.keras"
+MODEL_PATH = "EfficientNetB0_best.keras"
 IMAGE_SIZE = (224, 224)
 CLASS_NAMES = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferative DR']
 
