@@ -135,7 +135,7 @@ if uploaded_file is not None:
     st.subheader("Grad-CAM++ Explanation")
     try:
         gradcam_overlay = generate_gradcam(model, original_array)
-        st.image(gradcam_overlay, caption="Grad-CAM++", use_container_width=False)
+        st.image(gradcam_overlay, caption="Grad-CAM++", width=700)
     except Exception as e:
         st.error(f"Grad-CAM++ failed: {e}")
 
