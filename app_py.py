@@ -4,6 +4,7 @@ st.set_page_config(page_title="DR Classifier", layout="wide")
 
 # ✅ OTHER IMPORTS
 import numpy as np
+import cv2
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.efficientnet import preprocess_input
