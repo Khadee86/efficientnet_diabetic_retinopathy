@@ -104,7 +104,7 @@ uploaded_file = st.file_uploader("Upload a Retinal Image", type=["jpg", "jpeg", 
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert('RGB')
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.image(image, caption="Uploaded Image", width=900)
 
     # ---------- RETINA CHECK ----------
     is_retina = is_likely_retinal_image(image)
@@ -135,7 +135,7 @@ if uploaded_file is not None:
     st.subheader("Grad-CAM++ Explanation")
     try:
         gradcam_overlay = generate_gradcam(model, original_array)
-        st.image(gradcam_overlay, caption="Grad-CAM++", width=700)
+        st.image(gradcam_overlay, caption="Grad-CAM++", width=900)
     except Exception as e:
         st.error(f"Grad-CAM++ failed: {e}")
 
@@ -143,6 +143,6 @@ if uploaded_file is not None:
     st.subheader("LIME Explanation")
     try:
         lime_img = generate_lime_explanation(model, original_array)
-        st.image(lime_img, caption="LIME Explanation", use_container_width=True)
+        st.image(lime_img, caption="LIME Explanation", width=900)
     except Exception as e:
         st.error(f"LIME explanation failed: {e}")
